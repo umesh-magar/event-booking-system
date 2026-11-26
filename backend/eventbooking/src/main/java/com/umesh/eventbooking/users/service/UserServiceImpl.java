@@ -5,6 +5,7 @@ import com.umesh.eventbooking.users.dto.UserResponse;
 import com.umesh.eventbooking.users.entity.Role;
 import com.umesh.eventbooking.users.entity.RoleName;
 import com.umesh.eventbooking.users.entity.User;
+import com.umesh.eventbooking.users.mapper.UserMapper;
 import com.umesh.eventbooking.users.repository.RoleRepository;
 import com.umesh.eventbooking.users.repository.UserRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -15,10 +16,12 @@ public class UserServiceImpl {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
-    public UserServiceImpl(UserRepository userRepository, RoleRepository roleRepository, PasswordEncoder passwordEncoder){
+    private final UserMapper userMapper;
+    public UserServiceImpl(UserRepository userRepository, RoleRepository roleRepository, PasswordEncoder passwordEncoder,UserMapper userMapper){
         this.userRepository=userRepository;
         this.roleRepository=roleRepository;
         this.passwordEncoder=passwordEncoder;
+        this.userMapper=userMapper;
     }
     public UserResponse register(UserRegistrationRequest request){
         String email=request.email().trim().toLowerCase();
@@ -27,16 +30,9 @@ public class UserServiceImpl {
         }
         String encodedPassword =passwordEncoder.encode(request.password());
         Role customerRole=roleRepository.findByName(RoleName.CUSTOMER).orElseThrow(()->new IllegalStateException("CUSTOMER role not found"));
-        User user=new User(request.fullName(),email,encodedPassword,request.phoneNumber());
+        User user=userMapper.toEntity(request,encodedPassword);
         user.addRole(customerRole);
         User savedUser=userRepository.save(user);
-        return  new UserResponse(
-                savedUser.getUserId(),
-                savedUser.getUsername(),
-                savedUser.getEmail(),
-                savedUser.getPhoneNumber(),
-                Set.of(RoleName.CUSTOMER),
-                savedUser.getCreatedAt()
-        );
+        return  userMapper.toResponse(savedUser);
     }
 }

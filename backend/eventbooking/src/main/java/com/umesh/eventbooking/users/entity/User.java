@@ -13,7 +13,6 @@ import java.util.Set;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Builder
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -21,7 +20,7 @@ public class User {
     @Column(nullable = false,length = 20)
     private String username;
     @Column(name = "password_hash", nullable = false,length = 20)
-    private String password;
+    private String passwordHash;
     @Column(nullable = false,length = 20)
     private String email;
     @Column(name="phone_number",length = 20)
@@ -48,9 +47,10 @@ public class User {
             inverseJoinColumns = @JoinColumn(name="role_id")
     )
     private Set<Role> roles=new HashSet<>();
-    public User(String fullName, String passwordHash,String email, String phoneNumber){
-        this.username=fullName;
-        this.password=passwordHash;
+    @Builder
+    public User(String username, String passwordHash,String email, String phoneNumber){
+        this.username=username;
+        this.passwordHash=passwordHash;
         this.email=email;
         this.phoneNumber=phoneNumber;
     }
